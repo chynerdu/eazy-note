@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:flutter/rendering.dart';
+import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
 // import 'dart:convert';
 // import '../models/notes-model.dart';
 import '../scoped-models/main.dart';
@@ -19,11 +23,32 @@ class Notes extends StatefulWidget {
 }
 
 class _NotesState extends State<Notes> {
+    ScrollController scrollController;
+    final ScrollController controller = ScrollController();
+    bool dialVisible = true;
+    var currentPage = 0;
+    var selectedTheme = 1;
   @override
   initState() {
     widget.model.fetchNotes();
+    widget.model.getNetworkStatus;
     // widget.model.currentDate;
     super.initState();
+    // scrollController = ScrollController();
+    //   controller.addListener(() {
+    //     print(scrollController.position.userScrollDirection);
+    //     if (scrollController.position.userScrollDirection == ScrollDirection.forward) {
+    //       print('scrolling');
+    //     }
+    //     setDialVisible(scrollController.position.userScrollDirection == ScrollDirection.forward);
+    //   });
+  }
+  void setDialVisible(bool value) {
+    setState(() {
+      dialVisible = value;
+       // _showAlert();
+        
+    });
   }
 
   // animation
@@ -44,12 +69,13 @@ class _NotesState extends State<Notes> {
       }
     );
   }
-   Widget _buildListViewBuilder() {
+   Widget _buildListViewBuilder(Function fetch) {
     return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model) {
      return 
      LiquidPullToRefresh(
-       onRefresh: model.fetchNotes,
+       onRefresh: fetch,
        child: ListView.builder(
+        controller: scrollController,
         padding: const EdgeInsets.all(8.0),
         itemCount: model.allNotes.length,
         itemBuilder: (BuildContext context, int index) {
@@ -66,7 +92,7 @@ class _NotesState extends State<Notes> {
             onDismissed: (direction) {
                   model.selectNote(model.allNotes[index].id);
                   model.deleteNote()
-                  .then((bool success) {
+                  .then((dynamic success) {
                     if(success) {
                       Flushbar(
                         title:  "Success!",
@@ -174,33 +200,11 @@ class _NotesState extends State<Notes> {
                             Text(
                               model.allNotes[index].dateTime,
                             ),
-                          //    style: TextStyle(fontSize: 10.0)
-                          //     ),
-                          
-                          // Chip(
-                          //   avatar: CircleAvatar(
-                          //     backgroundColor: Colors.red,
-                          //     child: Icon(
-                          //       Icons.access_time,
-                          //       color: Colors.white,
-                          //       size: 13.0,
-                          //     )
-                          //   ),
-                          //   label: Text(
-                          //     model.allNotes[index].dateTime,
-                          //     style: TextStyle(fontSize: 10.0)
-                          //     ),
-                          // ),
-                        ],),
-                        
-                      ]
-                    // )
-                    
+                        ],),                       
+                      ]                   
                   ),
-
                   onTap: () => Navigator.pushNamed<bool>(
-                    context, '/notes/' + model.allNotes[index].id
-                    
+                    context, '/notes/' + model.allNotes[index].id                  
                   )
                 ),
                 Divider()
@@ -211,12 +215,12 @@ class _NotesState extends State<Notes> {
       ),);
     });
    }
-   Widget _buildNoteList() {
+   Widget _buildNoteList(Function fetch) {
     return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model) {
       Widget  content = Center(child:CircularProgressIndicator());
       if (model.displayedNotes.length > 0 && !model.isLoading) {
         print('done loading');
-        content = _buildListViewBuilder();
+        content = _buildListViewBuilder(fetch);
       } else if (model.displayedNotes.length <= 0 && !model.isLoading) {
         content = Center(
           child: Column(
@@ -228,8 +232,6 @@ class _NotesState extends State<Notes> {
                   image: AssetImage('assets/no-note.png'),
                   height: 120.0,
                   width: 120
-                  // fit: BoxFit.cover,
-                  // placeholder: AssetImage('assets/eazynote.svg')
                 ),
               ),
               Container(
@@ -248,23 +250,226 @@ class _NotesState extends State<Notes> {
     });
   }
 
+  Widget _buildSideDrawer(BuildContext context, model) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          // AppBar(
+          //   automaticallyImplyLeading: false,
+          //   title: Text('EazyNote'),
+          // ),
+          DrawerHeader(
+            // decoration: BoxDecoration(
+            //   color: Theme.of(context).buttonColor
+            // ),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              image: new DecorationImage(
+                colorFilter:
+                  ColorFilter.mode(Theme.of(context).buttonColor.withOpacity(0.2), BlendMode.darken),
+                fit: BoxFit.cover,
+                image: new ExactAssetImage("assets/note.jpg")
+              )
+            ),
+            child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              verticalDirection: VerticalDirection.down,
+              children: <Widget>[
+                Text('EazyNote', 
+                style: TextStyle(color:Colors.white, fontSize: 30.0,),
+                ),
+                Text(model.user.email,
+                  style: new TextStyle(
+                    fontSize: 15.0, fontWeight: FontWeight.w500, color:Colors.white),
+                  ),
+              ],)
+            
+          ),
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.add_comment),
+            title: Text('Create Note'),
+            onTap: () {
+              Navigator.of(context).push(
+                _newNoteAnimation()
+              );
+            },
+          ),
+          Divider(),
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.book),
+            title: Text('Project Manager (Coming Soon)'),
+            onTap: () {
+              
+            },
+          ),
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.nature_people),
+            title: Text('Instagram'),
+            onTap: () {
+              model.logout();
+                Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+          
+          Divider(),
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.palette),
+            title: Text('Change App Theme'),
+          ),
+          Row(
+            // crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              new RawMaterialButton(
+                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                onPressed: () {
+                  widget.model.changeAppTheme(1);
+                  // changeTheme(model, selectedTheme);
+                },
+                shape: new CircleBorder(),
+                elevation: 2.0,
+                fillColor: Colors.orange,
+                padding: const EdgeInsets.all(15.0),
+              ),
+              new RawMaterialButton(
+                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                onPressed: () {
+                  widget.model.changeAppTheme(2);
+                },
+                // child: new Icon(
+                //   Icons.pause,
+                //   color: Colors.blue,
+                //   size: 35.0,
+                // ),
+                shape: new CircleBorder(),
+                elevation: 2.0,
+                fillColor: Colors.red,
+                padding: const EdgeInsets.all(15.0),
+              ),
+              new RawMaterialButton(
+                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                onPressed: () {
+                  widget.model.changeAppTheme(3);
+                },
+                shape: new CircleBorder(),
+                elevation: 2.0,
+                fillColor: Colors.blue,
+                padding: const EdgeInsets.all(15.0),
+              ),
+              new RawMaterialButton(
+                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                onPressed: () {
+                  //  _showAlert();
+                      // EdgeAlert.show(context, title: 'Title', description: 'Description', gravity: EdgeAlert.TOP);
+                  widget.model.changeAppTheme(4);
+                },
+                shape: new CircleBorder(),
+                elevation: 2.0,
+                fillColor: Colors.green,
+                padding: const EdgeInsets.all(15.0),
+              ),
+              new RawMaterialButton(
+                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                onPressed: () {
+                  widget.model.changeAppTheme(5);
+                },
+                shape: new CircleBorder(),
+                elevation: 2.0,
+                fillColor: Colors.brown,
+                padding: const EdgeInsets.all(15.0),
+              )
+            ],
+          ),
+          SizedBox(height: 5.0),
+        
+          Divider(),
+          
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.apps),
+            title: Text('App Version: 1.0'),
+            onTap: () {
+              model.logout();
+                Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+          ListTile(
+            dense: true,
+            leading: Icon(Icons.person_pin),
+            title: Text('About Us'),
+            onTap: () {
+              model.logout();
+                Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.exit_to_app, color: Colors.red),
+            title: Text('Logout', 
+            style: TextStyle(color: Colors.red)),
+            onTap: () {
+              model.logout();
+                Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+
+          // LogoutListTile()
+        ],
+      ),
+    );
+  }
+ 
+  // Widget _showAlert() {
+  //   Alert(
+  //     context: context,
+  //     title: "Network Changed",
+  //     desc: "Oooh, You are not connected to a newtwork",
+  //     buttons: [
+  //       DialogButton(
+  //         child: Text(
+  //           "Okay",
+  //           style: TextStyle(color: Colors.white, fontSize: 20),
+  //         ),
+  //         onPressed: () => Navigator.pop(context),
+  //         color: Color.fromRGBO(0, 179, 134, 1.0),
+  //       ),],
+  //     style: AlertStyle(
+  //       // animationDuration: Duration(milliseconds: 400),
+  //       animationType: AnimationType.fromTop,
+  //       isCloseButton: false,
+  //       isOverlayTapDismiss: false,
+  //     )
+  //   ).show();
+  // }
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(builder: (BuildContext context, Widget child, MainModel model) {
+      TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+      List<Widget> _widgetOptions = <Widget>[
+        _buildNoteList(model.fetchNotes),
+        _buildNoteList(model.fetchOnlineNotes),
+      ];
       return Scaffold(
+        drawer: _buildSideDrawer(context, model),
         appBar: AppBar(
-          title: Text('My Notes'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.exit_to_app),
-              onPressed: () {
-                model.logout();
-                Navigator.of(context).pushReplacementNamed('/');
-              }
-            ) 
-          ],
+          title:  currentPage == 0 ? Text('Local Device') : Text('Online'),
+          // actions: <Widget>[
+          //   IconButton(
+          //     icon: Icon(Icons.exit_to_app),
+          //     onPressed: () {
+                
+          //     }
+          //   ) 
+          // ],
         ),
-        body: _buildNoteList(),
-          floatingActionButton: FloatingActionButton(
+        body:  _widgetOptions.elementAt(currentPage),
+        // body: _buildNoteList(),
+          floatingActionButton: Visibility(
+          visible: dialVisible,
+          child: FloatingActionButton(
+            
             onPressed: () {
               // Add your onPressed code here!
               Navigator.of(context).push(
@@ -274,9 +479,29 @@ class _NotesState extends State<Notes> {
             },
             // label: Text('New'),
             child: Icon(Icons.add),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).accentColor,
           ),
+          
         
+        ),
+        bottomNavigationBar: FancyBottomNavigation(
+          tabs: [
+            TabData(iconData: Icons.devices, title: "Local Device"),
+            TabData(iconData: Icons.cloud_download, title: "Online")
+          ],
+          onTabChangedListener: (position) {
+            print('position $currentPage');
+              setState(() {
+                currentPage = position;
+                if (position == 0) {
+                print('position too $currentPage');
+                  model.fetchNotes();
+                } else {
+                  model.fetchOnlineNotes();
+                }
+              });
+
+          })
       );
     });
     

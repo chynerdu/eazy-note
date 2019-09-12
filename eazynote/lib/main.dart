@@ -1,15 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './scoped-models/main.dart';
-// import './database/database-helper.dart';
-
-import 'package:intro_views_flutter/Models/page_view_model.dart';
-import 'package:intro_views_flutter/intro_views_flutter.dart';
-
-import 'package:intro_slider/intro_slider.dart';
-
-
+import 'package:rflutter_alert/rflutter_alert.dart';
 // models
 import './models/notes-model.dart';
 
@@ -28,6 +24,8 @@ void main() {
 
 class MyApp extends StatefulWidget {
   @override
+
+  
   State<StatefulWidget> createState() {
     return _MyAppState();
   }
@@ -38,72 +36,182 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State <MyApp> {
   final MainModel _model = MainModel();
   bool _isAuthenticated = false;
+  int _themeColor = 1;
+  String _connectionStatus;
+  // String _connectionStatus;
+
   // final dbHelper = DatabaseHelper.instance;
 
-  // final pages = [
-  //   PageViewModel(
-  //       pageColor: const Color(0xFF03A9F4),
-  //       // iconImageAssetPath: 'assets/air-hostess.png',
-  //       // bubble: Image.asset('assets/note.png'),
-  //       body: Text(
-  //         'Haselfree  booking  of  flight  tickets  with  full  refund  on  cancelation',
-  //       ),
-  //       title: Text(
-  //         'Flights',
-  //       ),
-  //       textStyle: TextStyle(fontFamily: 'MyFont', color: Colors.white),
-  //       mainImage: Image.asset(
-  //         'assets/note.png',
-  //         height: 285.0,
-  //         width: 285.0,
-  //         alignment: Alignment.center,
-  //       )
-  //       ),
-  //   PageViewModel(
-  //     pageColor: const Color(0xFF8BC34A),
-  //     iconImageAssetPath: 'assets/note.png',
-  //     body: Text(
-  //       'We  work  for  the  comfort ,  enjoy  your  stay  at  our  beautiful  hotels',
-  //     ),
-  //     title: Text('Hotels'),
-  //     mainImage: Image.asset(
-  //       'assets/note.png',
-  //       height: 285.0,
-  //       width: 285.0,
-  //       alignment: Alignment.center,
-  //     ),
-  //     textStyle: TextStyle(fontFamily: 'MyFont', color: Colors.white),
-  //   ),
-  //   PageViewModel(
-  //     pageColor: const Color(0xFF607D8B),
-  //     iconImageAssetPath: 'assets/note.png',
-  //     body: Text(
-  //       'Easy  cab  booking  at  your  doorstep  with  cashless  payment  system',
-  //     ),
-  //     title: Text('Cabs'),
-  //     mainImage: Image.asset(
-  //       'assets/note.png',
-  //       height: 285.0,
-  //       width: 285.0,
-  //       alignment: Alignment.center,
-  //     ),
-  //     textStyle: TextStyle(fontFamily: 'MyFont', color: Colors.white),
-  //   ),
-  // ];
-
-  // end slider
   @override
-  void initState() {
-    _model.autoAuthenticate();
+  initState() {
+    // start network check
+     _model.networkStatus();
+    _model.getNetworkStatus.listen((String connectionStatus) {
+      setState(() {
+      
+        _connectionStatus = connectionStatus;
+        print('connection here $_connectionStatus');
+      });
+    });
+    // check connectivity
+    // final Connectivity _connectivity = new Connectivity();
+    // StreamSubscription<ConnectivityResult> _connectionSubscription;
+
+    //  _connectionSubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+    //   setState(() {// Got a new connectivity status!
+    //     _connectionStatus = result.toString();
+    //     print('connectivity $result');
+    //   });
+    // });
+    // get ative theme from sharedPreference
+    SharedPreferences.getInstance()
+    .then((SharedPreferences prefs) {
+      final int persistedThemeColor = prefs.getInt('activeTheme');
+      // print('color saved now $persistedThemeColor');
+      // auto login
+       _model.autoAuthenticate();
+      _themeColor = persistedThemeColor != null ? persistedThemeColor : _themeColor;
+    });
+
+    // Check authentication status
     _model.userSubject.listen((bool isAuthenticated) {
       setState(() {
         _isAuthenticated = isAuthenticated;
       });
     });
+
+    // listen to themeCOlor change
+    _model.themeColor.listen((dynamic themeColor) {
+      setState(() {
+        _themeColor = themeColor;
+      });
+    });
     super.initState();
+  }
+  // dynamic theme data
+  getColor(model) {
+    // setState(() {
+      if (_themeColor == 1 ) {
+        // setState(() {
+          return ThemeData(
+          brightness: Brightness.light,
+          primarySwatch: Colors.orange,
+          accentColor: Colors.red,
+          buttonColor: Colors.orange,
+          primaryTextTheme: TextTheme(
+            title: TextStyle(
+              color: Colors.white
+            )        
+          ),
+          primaryIconTheme: IconThemeData(
+            color: Colors.white
+          ),
+          textTheme: TextTheme(
+          headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          title: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+          body1: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+ 
+          
+        );
+        // });
+      
+    } else if (_themeColor == 2) {
+      return ThemeData(
+          brightness: Brightness.light,
+          primarySwatch: Colors.red,
+          accentColor: Colors.green,
+          buttonColor: Colors.red,
+          primaryTextTheme: TextTheme(
+            title: TextStyle(
+              color: Colors.white
+            )        
+          ),
+          primaryIconTheme: IconThemeData(
+            color: Colors.white
+          ),
+          textTheme: TextTheme(
+          headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          title: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+          body1: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+ 
+          
+        );
+        } else if (_themeColor == 4) {
+          return ThemeData(
+              brightness: Brightness.light,
+              primarySwatch: Colors.green,
+              accentColor: Colors.black87,
+              buttonColor: Colors.green,
+              primaryTextTheme: TextTheme(
+                title: TextStyle(
+                  color: Colors.white
+                )        
+              ),
+              primaryIconTheme: IconThemeData(
+                color: Colors.white
+              ),
+              textTheme: TextTheme(
+              headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+              title: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+              body1: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+            ),
+    
+              
+            );
+        } else if (_themeColor == 5) {
+        return ThemeData(
+          brightness: Brightness.light,
+          primarySwatch: Colors.brown,
+          accentColor: Colors.deepOrange,
+          buttonColor: Colors.brown,
+          primaryTextTheme: TextTheme(
+            title: TextStyle(
+              color: Colors.white
+            )        
+          ),
+          primaryIconTheme: IconThemeData(
+            color: Colors.white
+          ),
+          textTheme: TextTheme(
+          headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          title: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+          body1: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+ 
+          
+        );
+    
+    } else {
+      return ThemeData(
+          brightness: Brightness.light,
+          primarySwatch: Colors.blue,
+          accentColor: Colors.red,
+          buttonColor: Colors.blue,
+          primaryTextTheme: TextTheme(
+            title: TextStyle(
+              color: Colors.white
+            )        
+          ),
+          primaryIconTheme: IconThemeData(
+            color: Colors.white
+          ),
+          textTheme: TextTheme(
+          headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          title: TextStyle(fontSize: 30.0, color: Colors.white),
+          body1: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+ 
+          
+        );
+    }
+    // });
+    
   }
    @override
   Widget build(BuildContext context) {
+   
     // SystemChrome.setSystemUIOverlayStyle(
     //   SystemUiOverlayStyle(
     //     statusBarColor: Colors.transparent, //top bar color
@@ -116,12 +224,7 @@ class _MyAppState extends State <MyApp> {
       model: _model,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.light,
-          primarySwatch: Colors.orange,
-          accentColor: Colors.orangeAccent,
-          buttonColor: Colors.orange
-        ),
+        theme: getColor(_model),
         routes: {
           '/': (BuildContext context) => !_isAuthenticated ? IntroScreen(_model) : Notes(_model),
           // '/': (BuildContext context) => IntroViewsFlutter(

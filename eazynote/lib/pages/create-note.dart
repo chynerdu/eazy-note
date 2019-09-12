@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:zefyr/zefyr.dart';
+
 // import 'dart:convert';
 // import '../models/notes-model.dart';
 import '../scoped-models/main.dart';
@@ -26,6 +28,19 @@ class _NewNotePageState extends State<NewNotePage> {
      final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
      final _titleFocusNode = FocusNode();
      final _subtitleFocusNode = FocusNode();
+     ZefyrController _controller;
+     FocusNode _focusNode;
+     bool _lights = false;
+
+
+
+    @override
+    void initState() {
+      super.initState();
+      final document = new NotusDocument();
+      _controller = new ZefyrController(document);
+      _focusNode = new FocusNode();
+    }
 
     Widget _buildTitleTextField() {
       return EnsureVisibleWhenFocused(
@@ -49,6 +64,15 @@ class _NewNotePageState extends State<NewNotePage> {
         )
       );
     }
+
+  // Widget _buildSubtitleTextField1 () {
+  //   return ZefyrScaffold(
+  //     child: ZefyrEditor(
+  //       controller: _controller,
+  //       focusNode: _focusNode,
+  //     ),
+  //   );
+  // }
 
     Widget _buildSubtitleTextField() {
       return EnsureVisibleWhenFocused(
@@ -146,6 +170,20 @@ class _NewNotePageState extends State<NewNotePage> {
       );
     }
 
+    Widget _buildStorageLocationSwitch() {
+      return SwitchListTile(
+      title: const Text("Don't Save On Device"),
+      value: _lights,
+      onChanged: (bool value) { 
+        print('toggled $value');
+        setState(() {
+         _lights = value;
+        }); 
+      },
+      secondary: const Icon(Icons.devices),
+    );
+    }
+
 
     Widget _buildSubmitButton() {
       return ScopedModelDescendant<MainModel>(
@@ -174,7 +212,8 @@ class _NewNotePageState extends State<NewNotePage> {
         addNote(
           _formData['title'],
           _formData['subtitle'],
-          _formData['category']
+          _formData['category'],
+          _lights
         ).then((bool success) {
           if(success) {
               // Scaffold.of(context).showSnackBar(SnackBar(
@@ -203,6 +242,9 @@ class _NewNotePageState extends State<NewNotePage> {
             child: ListView(
               padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
               children: <Widget>[
+                _buildStorageLocationSwitch(),
+                Divider(),
+                SizedBox(height:10.0),
                 _buildTitleTextField(),
                 SizedBox(height:10.0),
                 Divider(),

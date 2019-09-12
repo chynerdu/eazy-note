@@ -5,6 +5,7 @@ import 'package:rxdart/subjects.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../database/database-helper.dart';
+import 'package:connectivity/connectivity.dart';
 // import 'package:intl/intl.dart';
 // import 'package:path/path.dart';
 // import 'package:sqflite/sqflite.dart';
@@ -108,17 +109,24 @@ mixin NotesLists on ConnectedNotesModel {
   }
 
   //  add note
-  Future <bool>  addNote(String title, String subtitle, String category) async {
+  Future <bool>  addNote(String title, String subtitle, String category, bool notOnDevice) async {
+    dynamic isLocal;
+    // Map<String, dynamic> row;
+    notOnDevice == false ? isLocal = 1 : isLocal = 0;
     _isLoading = true;
     notifyListeners();
+    dynamic savedNoteId;
     final Map<String, dynamic> noteFormData = {
       'title': title,
       'subtitle': subtitle,
       'category': category,
       'dateTime': currentDate,
-      'userId': _authenticatedUser.id
+      'userId': _authenticatedUser.id,
+      'isLocal': isLocal
     };
     try {
+      print('saveing to $isLocal');
+      // save online
       final http.Response response = await http.post('https://eazynote-78666.firebaseio.com/notes/${_authenticatedUser.id}.json', 
       body: json.encode(noteFormData));
       if(response.statusCode != 200 && response.statusCode != 201) {
@@ -128,31 +136,38 @@ mixin NotesLists on ConnectedNotesModel {
       }
       final Map<String, dynamic> responseData = json.decode(response.body);
       print(responseData);
-      final dbHelper = DatabaseHelper.instance;
+      savedNoteId = responseData['name'];
+       if (isLocal == 1) {
       // insert into local database
-      Map<String, dynamic> row = {
-        DatabaseHelper.columnId: responseData['name'],
-        DatabaseHelper.columnTitle : title,
-        DatabaseHelper.columnSubtitle : subtitle,
-        DatabaseHelper.columnCategory : category,
-        DatabaseHelper.columnDateTime : currentDate
-      };
-      final id = await dbHelper.insert(row);
-      print('inserted row id: $id');
+      final dbHelper = DatabaseHelper.instance;
+        print('is islocal $isLocal');
+        Map<String, dynamic> row = {
+          DatabaseHelper.columnId: savedNoteId,
+          DatabaseHelper.columnTitle : title,
+          DatabaseHelper.columnSubtitle : subtitle,
+          DatabaseHelper.columnCategory : category,
+          DatabaseHelper.columnDateTime : currentDate,
+          DatabaseHelper.columnisLocal: isLocal
+
+        };
+        final id = await dbHelper.insert(row);
+        print('inserted row id: $id');
+       }
        _isLoading = false;
-      //  update state
-      final NotesModel newNote = NotesModel(
-        id: responseData['name'],
-        title: title,
-        subtitle: subtitle,
-        category: category,
-        dateTime: currentDate,
-        userId: _authenticatedUser.id
-      );
-      _notes.add(newNote);
+        //  update state
+        final NotesModel newNote = NotesModel(
+          id: savedNoteId,
+          title: title,
+          subtitle: subtitle,
+          category: category,
+          dateTime: currentDate,
+          userId: _authenticatedUser.id,
+          isLocal: isLocal
+        );
+       _notes.add(newNote);
       _selNoteId = null;
       notifyListeners();
-      print(newNote);
+      // print(newNote);
       return true;
     } catch (error) {
      print(error);
@@ -165,54 +180,57 @@ mixin NotesLists on ConnectedNotesModel {
   }
   // update notes
   Future <bool>  updateNote(String title, String subtitle, String category) async {
-    _isLoading = true;
-    notifyListeners();
-    print(category);
-    final Map<String, dynamic> noteFormData = {
-      'title': title,
-      'subtitle': subtitle,
-      'category': category,
-      'dateTime': currentDate,
-      'userId': _authenticatedUser.id
-    };
-    return http.put('https://eazynote-78666.firebaseio.com/notes/${_authenticatedUser.id}/${selectedNote.id}.json',
-     body: json.encode(noteFormData))
-     .then((http.Response response) {
-      print(noteFormData);
-      final dbHelper = DatabaseHelper.instance;
-      print('selected note ${selectedNote.id}');
-      Map <String, dynamic> row = {
-        DatabaseHelper.columnId: selectedNote.id,
-        DatabaseHelper.columnTitle: title,
-        DatabaseHelper.columnSubtitle: subtitle,
-        DatabaseHelper.columnCategory: category,
-        DatabaseHelper.columnDateTime: currentDate,
-      };
-      dbHelper.update(row)
-      .then((rowsAffected) {
-        print('updated $rowsAffected');
-      });
-      final NotesModel updatedNote = NotesModel(
-        id: selectedNote.id,
-        title: title,
-        subtitle: subtitle,
-        category: category,
-        dateTime: currentDate,
-        userId: _authenticatedUser.id
-      );
-      _notes[selectedNoteIndex] = updatedNote;
-      _isLoading = false;
+      _isLoading = true;
       notifyListeners();
-      return true;
-    }) 
-    .catchError((error) {
-     print(error);
-     _isLoading = false;
-     notifyListeners();
-     return false;
-    });
-
-
+      print(category);
+      print('selected new note ${selectedNote.isLocal}');
+      final Map<String, dynamic> noteFormData = {
+        'title': title,
+        'subtitle': subtitle,
+        'category': category,
+        'dateTime': currentDate,
+        'userId': _authenticatedUser.id,
+        'isLocal': selectedNote.isLocal
+      };
+      return http.put('https://eazynote-78666.firebaseio.com/notes/${_authenticatedUser.id}/${selectedNote.id}.json',
+      body: json.encode(noteFormData))
+      .then((http.Response response) {
+        print(noteFormData);
+        if (selectedNote.isLocal == 1) {
+          final dbHelper = DatabaseHelper.instance;
+          print('selected note is local ${selectedNote.id}');
+          Map <String, dynamic> row = {
+            DatabaseHelper.columnId: selectedNote.id,
+            DatabaseHelper.columnTitle: title,
+            DatabaseHelper.columnSubtitle: subtitle,
+            DatabaseHelper.columnCategory: category,
+            DatabaseHelper.columnDateTime: currentDate,
+          };
+          dbHelper.update(row)
+          .then((rowsAffected) {
+            print('updated $rowsAffected');
+          });
+        }
+        final NotesModel updatedNote = NotesModel(
+          id: selectedNote.id,
+          title: title,
+          subtitle: subtitle,
+          category: category,
+          dateTime: currentDate,
+          userId: _authenticatedUser.id,
+          isLocal: selectedNote.isLocal
+        );
+        _notes[selectedNoteIndex] = updatedNote;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }) 
+        .catchError((error) {
+        print(error);
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      });
   }
   
   // delete database
@@ -235,7 +253,7 @@ mixin NotesLists on ConnectedNotesModel {
     // final response = await dbHelper.deleteDatabase();
     // print('deleted $response');
 
-    final allRows = await dbHelper.getNotes();
+    final allRows = await dbHelper.queryAllRows();
 
     // final List<NotesModel> fetchedNoteList = [];
     print('query all rows: $allRows');
@@ -247,7 +265,8 @@ mixin NotesLists on ConnectedNotesModel {
           title: noteList['title'],
           subtitle: noteList['subtitle'],
           category: noteList['category'],
-          dateTime: noteList['dateTime']
+          dateTime: noteList['dateTime'],
+          isLocal: noteList['isLocal']
         );
         fetchedNoteList.add(note);    
       });
@@ -265,7 +284,8 @@ mixin NotesLists on ConnectedNotesModel {
 
   }
 
-   Future <Null> fetchNotess() async {
+   Future <Null> fetchOnlineNotes() async {
+     print('fetching online');
     // final dbHelper = DatabaseHelper.instance;
     _isLoading = true;
     
@@ -305,20 +325,20 @@ mixin NotesLists on ConnectedNotesModel {
 
 
   
-  Future <bool> deleteNote() {
-    _isLoading = true;
+  Future <dynamic> deleteNote() {
+    // _isLoading = true;
     final deletedNoteId = selectedNote.id;
     _notes.removeAt(selectedNoteIndex);
     _selNoteId = null;
     notifyListeners();
-    return http.delete('https://eazynote-78666.firebaseio.com/notes/${_authenticatedUser.id}/${deletedNoteId}.json')
+    return http.delete('https://eazynote-78666.firebaseio.com/notes/${_authenticatedUser.id}/$deletedNoteId.json')
     .then((http.Response response) {
       // delete in sql db
       final dbHelper = DatabaseHelper.instance;
       // final id = await dbHelper.queryRowCount();
       dbHelper.delete(deletedNoteId)
       .then((rowsDeleted) {
-        _isLoading = false;
+        // _isLoading = false;
         notifyListeners();
         return true;
         // print('deleted $rowsDeleted row(s): row $deletedNoteId');
@@ -444,9 +464,31 @@ mixin NotesLists on ConnectedNotesModel {
 
 mixin Utility on ConnectedNotesModel {
    String _avatarColor = 'Colors.green';
+
+  PublishSubject<int> _themeColor = PublishSubject();
+  PublishSubject<String> _connectionStatus = PublishSubject();
+  
+  // define getter
+
+  PublishSubject<int> get themeColor {    
+    return _themeColor;
+  }
+
    // define getter
    String get avatarColor {
      return _avatarColor;
+  }
+   PublishSubject<String> get getNetworkStatus {
+    return _connectionStatus;
+  }
+
+  // 1 = orange, 2 = red, 3 = blue, 4 = green
+  changeAppTheme(theme) async {
+    print('theme is $theme');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('activeTheme', theme);
+    _themeColor.add(theme);
+    notifyListeners();
   }
 
   getColors(firstLetter, blue, green, red, orange) {
@@ -517,5 +559,17 @@ mixin Utility on ConnectedNotesModel {
     } else if (category == "4") {
       return "Personal";
     }
+  }
+
+  // get Networ status
+  networkStatus() {
+    final Connectivity _connectivity = new Connectivity();
+    StreamSubscription<ConnectivityResult> _connectionSubscription;
+     _connectionSubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      _connectionStatus.add(result.toString());
+       print('connectivity info $result');
+      return _connectionStatus;
+     
+    });
   }
 }

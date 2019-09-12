@@ -4,13 +4,10 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 
-
-import '../models/notes-model.dart';
-
 class DatabaseHelper {
   
   static final _databaseName = "EazyNoteDb.db";
-  static final _databaseVersion = 1;
+  static final _databaseVersion = 3;
 
   static final table = 'eazynotetable';
   
@@ -19,6 +16,7 @@ class DatabaseHelper {
   static final columnSubtitle = 'subtitle';
   static final columnCategory= 'category';
   static final columnDateTime = 'dateTime';
+  static final columnisLocal = 'isLocal';
 
 
   // make this a singleton class
@@ -52,10 +50,10 @@ class DatabaseHelper {
   //   return ourDb;
   // }
 
-  // // UPGRADE DATABASE TABLES
+  // // // UPGRADE DATABASE TABLES
   // void _onUpgrade(Database db, int oldVersion, int newVersion) {
   //   if (oldVersion < newVersion) {
-  //     db.execute("ALTER TABLE $table ADD COLUMN id TEXT;");
+  //     db.execute("ALTER TABLE $table ADD COLUMN $columnisOnline TEXT;");
   //   }
   // }
 
@@ -75,7 +73,7 @@ class DatabaseHelper {
   // SQL code to create the database table
   Future _onCreate(Database db, int version) async {
     await db.execute(
-      'CREATE TABLE $table ($columnId TEXT PRIMARY KEY, $columnTitle TEXT, $columnSubtitle TEXT, $columnCategory TEXT, $columnDateTime TEXT)');
+      'CREATE TABLE $table ($columnId TEXT PRIMARY KEY, $columnTitle TEXT, $columnSubtitle TEXT, $columnCategory TEXT, $columnDateTime TEXT, $columnisLocal INTEGER)');
       // await db.execute("CREATE TABLE $table ("
       //     "$columnId INTEGER PRIMARY KEY,"
       //     "$columnTitle TEXT,"
@@ -117,9 +115,11 @@ class DatabaseHelper {
   }
 
   // query2
-  Future<List> getNotes() async {
+  Future<List> getNotes(id) async {
   Database db = await instance.database;
-  var noteListData = await db.query(table, columns: ["id", "title", "subtitle", "category", "dateTime"]);
+  var noteListData = await db.query(table, columns: ["id", "title", "subtitle", "category", "dateTime"],
+  // '$columnId = ?', whereArgs: [id]
+  );
   // var listResult = result.toList();
   // print('result here $listResult');
   return noteListData;

@@ -1,12 +1,13 @@
 class NotesModel {
- String id;
+ dynamic id;
  String title;
  String subtitle;
  String category;
  String dateTime;
  String userId;
+ int isLocal;
 
-  NotesModel({this.id, this.title, this.subtitle, this.category, this.dateTime, this.userId});
+  NotesModel({this.id, this.title, this.subtitle, this.category, this.dateTime, this.userId, this.isLocal});
 
     // SQLFLITE DATABASE
 
@@ -24,7 +25,8 @@ class NotesModel {
       title: json["title"],
       subtitle: json["subtitle"],
       category: json["category"],
-      dateTime: json["dateTime"]
+      dateTime: json["dateTime"],
+      isLocal: json["isLocal"]
   );}
 
   // Map<String, dynamic> toJson() => {

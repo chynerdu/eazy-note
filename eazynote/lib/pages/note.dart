@@ -1,6 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+// import 'package:unicorndial/unicorndial.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:sticky_headers/sticky_headers.dart';
+
 
 import '../scoped-models/main.dart';
 import '../models/notes-model.dart';
@@ -8,9 +13,37 @@ import '../models/notes-model.dart';
 // views
 import './edit-Note.dart';
 
-class NotePage extends StatelessWidget {
-   final NotesModel note;
+class NotePage extends StatefulWidget {
+  final NotesModel note;
    NotePage(this.note);
+  @override
+  State<StatefulWidget> createState() {
+    return _NotePage();
+  }
+}
+
+class _NotePage extends State<NotePage> {
+ ScrollController scrollController;
+  bool dialVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    scrollController = ScrollController()
+      ..addListener(() {
+        setDialVisible(scrollController.position.userScrollDirection == ScrollDirection.forward);
+      });
+  }
+  void setDialVisible(bool value) {
+    setState(() {
+      dialVisible = value;
+    });
+  }
+
+
+
+//  NotesModel note;
 
      // components
   DecorationImage _buildBackgroundImage() {
@@ -25,7 +58,93 @@ class NotePage extends StatelessWidget {
     );
   }
 
-  Widget build(BuildContext context) {
+  SpeedDial buildSpeedDial(model) {
+    return SpeedDial(
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: IconThemeData(size: 22.0),
+      // child: Icon(Icons.add),
+      onOpen: () => print('OPENING DIAL'),
+      onClose: () => print('DIAL CLOSED'),
+      visible: dialVisible,
+      curve: Curves.bounceIn,
+      children: [
+        SpeedDialChild(
+          child: Icon(Icons.delete, color: Colors.white),
+          backgroundColor: Colors.redAccent,
+          onTap: () {
+             model.selectNote(widget.note.id);
+              model.deleteNote()
+              .then((bool success) {
+                if(success) {
+                  // print('delete success');
+                  Navigator.pushReplacementNamed(context, '/notes').then((_) => model.selectNote(null));
+                } else {
+                  // print('delete failed');
+                }
+              });
+          },
+          label: 'Delete',
+          labelStyle: TextStyle(fontWeight: FontWeight.w500),
+          labelBackgroundColor: Colors.redAccent,
+        ),
+        SpeedDialChild(
+          child: Icon(Icons.edit, color: Colors.white),
+          backgroundColor: Colors.blueAccent,
+          onTap: () {
+            model.selectNote(widget.note.id);
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return EditNotePage();
+                },
+              ),
+            );
+          },
+          label: 'Edit Note',
+          labelStyle: TextStyle(fontWeight: FontWeight.w500),
+          labelBackgroundColor: Colors.blueAccent,
+        ),
+      ],
+    );
+  }
+
+
+
+
+
+  Widget build(BuildContext context, ) {
+
+//     // unicorn dialer
+// var childButtons = List<UnicornButton>();
+//   childButtons.add(UnicornButton(
+//         hasLabel: true,
+//         labelText: "Choo choo",
+//         currentButton: FloatingActionButton(
+//           heroTag: "train",
+//           backgroundColor: Colors.redAccent,
+//           mini: true,
+//           child: Icon(Icons.train),
+//           onPressed: () {},
+//         )));
+
+//     childButtons.add(UnicornButton(
+//         currentButton: FloatingActionButton(
+//             heroTag: "airplane",
+//             backgroundColor: Colors.greenAccent,
+//             mini: true,
+//             child: Icon(Icons.airplanemode_active),
+//             onPressed: () {},
+//             )));
+
+//     childButtons.add(UnicornButton(
+//         currentButton: FloatingActionButton(
+//             heroTag: "directions",
+//             backgroundColor: Colors.blueAccent,
+//             mini: true,
+//             child: Icon(Icons.directions_car),
+            
+//             )));
+
     return ScopedModelDescendant<MainModel>(builder: (BuildContext context, Widget child, MainModel model) {
       return WillPopScope(onWillPop: () {
       Navigator.pop(context, false);
@@ -33,25 +152,25 @@ class NotePage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(note.title.toUpperCase()),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-               model.selectNote(note.id);
-               model.deleteNote()
-               .then((bool success) {
-                  if(success) {
-                    // print('delete success');
-                    Navigator.pushReplacementNamed(context, '/notes').then((_) => model.selectNote(null));
-                  } else {
-                    // print('delete failed');
-                  }
-               });
-              // Navigator.pushReplacementNamed(context, '/notes');
-              },
-            ) 
-          ],
+          title: Text('Reading'),
+          // actions: <Widget>[
+          //   IconButton(
+          //     icon: Icon(Icons.delete),
+          //     onPressed: () {
+          //      model.selectNote(widget.note.id);
+          //      model.deleteNote()
+          //      .then((bool success) {
+          //         if(success) {
+          //           // print('delete success');
+          //           Navigator.pushReplacementNamed(context, '/notes').then((_) => model.selectNote(null));
+          //         } else {
+          //           // print('delete failed');
+          //         }
+          //      });
+          //     // Navigator.pushReplacementNamed(context, '/notes');
+          //     },
+          //   ) 
+          // ],
         ),
         body: Stack(
           // crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,92 +186,93 @@ class NotePage extends StatelessWidget {
               
               
             ),
+            
             Positioned(
               bottom: 0.0,
               top:10.0,
-              left: 10.0,
-              right: 10.0,
-              child: Card(
-              elevation: 8.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4.0),
+              left: 5.0,
+              right: 5.0,
+              child: SingleChildScrollView(
+                 controller: scrollController,
+                 
+                
+                child: Card(
+                  elevation: 8.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.0),
                                
-                ),
-                child: Column(
-                  children: <Widget>[
-                    // Divider(color: Colors.red,),
-                    Padding(
-                      // padding: const EdgeInsets.all(0.0),
-                      padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                      child: Column(children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[          
-                            Chip(
-                              avatar: CircleAvatar(
-                                backgroundColor: Colors.orange,
-                                child: Icon(
-                                  Icons.access_time,
-                                  color: Colors.white,
-                                  size: 13.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                       StickyHeader(
+                        header: Container(
+                          color: Colors.white,
+                          child: Column(
+                            children: <Widget>[
+                              Padding(                          
+                                // color: Colors.white,
+                                padding: const EdgeInsets.all(10.0),
+                                child: Text(
+                                  widget.note.title.toUpperCase(),
+                                  style: TextStyle(
+                                      fontSize: 18.0, fontWeight: FontWeight.bold, fontFamily: 'Oswald',),
                                 )
                               ),
-                              label: Text(
-                                note.dateTime,
-                                style: TextStyle(fontSize: 10.0)
-                                ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                  color: model.getCategoryStyle(note.category, Colors.blueGrey, Colors.brown, Colors.black45, Colors.blueAccent),
-                                  borderRadius: BorderRadius.circular(2.0)
+                              Divider(),
+                              Padding(
+                                // padding: const EdgeInsets.all(0.0),
+                                padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                child: Column(children: <Widget>[
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: <Widget>[         
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
+                                        decoration: BoxDecoration(
+                                            color: model.getCategoryStyle(widget.note.category, Colors.blueGrey, Colors.brown, Colors.black45, Colors.blueAccent),
+                                            borderRadius: BorderRadius.circular(2.0)
+                                        ),
+                                        child:Text(
+                                        model.getCategoryLabel(widget.note.category),
+                                        style: TextStyle(color: Colors.white)
+                                        ), 
+                                      ),
+                                      Container(
+                                        margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.5),
+                                        child: Text(
+                                          widget.note.dateTime,
+                                          style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)
+                                        ),
+                                      ), 
+                                  ],),
+                                  Divider(),
+                                ],)
                               ),
-                              child:Text(
-                              model.getCategoryLabel(note.category),
-                              style: TextStyle(color: Colors.white)
-                              ), 
-                            ),
-                        ],),
-                      ],)
-                    ),
-                    Divider(),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Text(
-                        note.title.toUpperCase(),
-                        style: TextStyle(
-                            fontSize: 18.0, fontWeight: FontWeight.bold, fontFamily: 'Oswald',),
-                      )
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(note.subtitle,
-                      style: TextStyle(fontSize: 16.0,
-                      height: 1.5))
-                    ),
+                          ],)
+                          
+                        ),
+                      content: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(widget.note.subtitle,
+                        style: TextStyle(fontSize: 16.0,
+                        height: 1.5))
+                    
+                      ),
+                      ),
+                    
                   ],
                 ),
 
-              ),
+                ),
+
+
+              )
+              
             )
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            model.selectNote(note.id);
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return EditNotePage();
-                },
-              ),
-            );
-          },
-          // label: Text('Edit'),
-          child: Icon(Icons.edit),
-          backgroundColor: Colors.red,
-        ),
+        floatingActionButton: buildSpeedDial(model),
         )
       );
     });

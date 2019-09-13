@@ -179,7 +179,7 @@ class _NotePage extends State<NotePage> {
             Container(
               decoration: new BoxDecoration(
                 // image: _buildBackgroundImage(),
-                color: Colors.orangeAccent
+                color: Theme.of(context).buttonColor
               ),
               // color: Colors.red,
               padding: EdgeInsets.all(15.0),

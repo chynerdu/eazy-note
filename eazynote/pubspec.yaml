@@ -42,6 +42,7 @@ dependencies:
   sticky_headers: "^0.1.8"
   connectivity: ^0.4.4
   rflutter_alert: ^1.0.3
+ 
 
 
 
@@ -68,6 +69,7 @@ flutter:
     - assets/intro1.png
     - assets/intro2.png
     - assets/intro3.png
+    - assets/chi3.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

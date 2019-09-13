@@ -53,17 +53,8 @@ class _MyAppState extends State <MyApp> {
         print('connection here $_connectionStatus');
       });
     });
-    // check connectivity
-    // final Connectivity _connectivity = new Connectivity();
-    // StreamSubscription<ConnectivityResult> _connectionSubscription;
-
-    //  _connectionSubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
-    //   setState(() {// Got a new connectivity status!
-    //     _connectionStatus = result.toString();
-    //     print('connectivity $result');
-    //   });
-    // });
-    // get ative theme from sharedPreference
+    
+    // get active theme from sharedPreference
     SharedPreferences.getInstance()
     .then((SharedPreferences prefs) {
       final int persistedThemeColor = prefs.getInt('activeTheme');
@@ -96,7 +87,7 @@ class _MyAppState extends State <MyApp> {
           return ThemeData(
           brightness: Brightness.light,
           primarySwatch: Colors.orange,
-          accentColor: Colors.red,
+          accentColor: Colors.white,
           buttonColor: Colors.orange,
           primaryTextTheme: TextTheme(
             title: TextStyle(
@@ -120,7 +111,7 @@ class _MyAppState extends State <MyApp> {
       return ThemeData(
           brightness: Brightness.light,
           primarySwatch: Colors.red,
-          accentColor: Colors.green,
+          accentColor: Colors.white,
           buttonColor: Colors.red,
           primaryTextTheme: TextTheme(
             title: TextStyle(
@@ -142,7 +133,7 @@ class _MyAppState extends State <MyApp> {
           return ThemeData(
               brightness: Brightness.light,
               primarySwatch: Colors.green,
-              accentColor: Colors.black87,
+              accentColor: Colors.white,
               buttonColor: Colors.green,
               primaryTextTheme: TextTheme(
                 title: TextStyle(
@@ -164,7 +155,7 @@ class _MyAppState extends State <MyApp> {
         return ThemeData(
           brightness: Brightness.light,
           primarySwatch: Colors.brown,
-          accentColor: Colors.deepOrange,
+          accentColor: Colors.white,
           buttonColor: Colors.brown,
           primaryTextTheme: TextTheme(
             title: TextStyle(
@@ -187,7 +178,7 @@ class _MyAppState extends State <MyApp> {
       return ThemeData(
           brightness: Brightness.light,
           primarySwatch: Colors.blue,
-          accentColor: Colors.red,
+          accentColor: Colors.white,
           buttonColor: Colors.blue,
           primaryTextTheme: TextTheme(
             title: TextStyle(

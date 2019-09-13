@@ -10,7 +10,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 // import '../models/notes-model.dart';
 import '../scoped-models/main.dart';
 import './create-note.dart';
-
+import './about.dart';
 
 class Notes extends StatefulWidget {
   final MainModel model;
@@ -28,20 +28,34 @@ class _NotesState extends State<Notes> {
     bool dialVisible = true;
     var currentPage = 0;
     var selectedTheme = 1;
+    String _connectionStatus;
+
   @override
   initState() {
+     widget.model.networkStatus();
+      widget.model.getNetworkStatus.listen((String connectionStatus) {
+      setState(() {  
+        _connectionStatus = connectionStatus;
+        print('connection here in notes $_connectionStatus');
+      });
+      
+    });
     widget.model.fetchNotes();
     widget.model.getNetworkStatus;
     // widget.model.currentDate;
     super.initState();
-    // scrollController = ScrollController();
-    //   controller.addListener(() {
-    //     print(scrollController.position.userScrollDirection);
-    //     if (scrollController.position.userScrollDirection == ScrollDirection.forward) {
-    //       print('scrolling');
-    //     }
-    //     setDialVisible(scrollController.position.userScrollDirection == ScrollDirection.forward);
-    //   });
+    widget.model.networkStatus();
+      widget.model.getNetworkStatus.listen((String connectionStatus) {
+      setState(() {  
+        _connectionStatus = connectionStatus;
+        print('connection here in notes $_connectionStatus');
+      });
+      if (_connectionStatus == 'ConnectivityResult.none') {
+        print('Criteria matched');
+        WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showAlert());
+    }
+    });
   }
   void setDialVisible(bool value) {
     setState(() {
@@ -69,10 +83,29 @@ class _NotesState extends State<Notes> {
       }
     );
   }
+
+  Route _aboutAnimation() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => AboutDev(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var begin = Offset(0.0, 1.0);
+        var end = Offset.zero;
+        var curve = Curves.ease;
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      }
+    );
+  }
    Widget _buildListViewBuilder(Function fetch) {
     return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model) {
      return 
      LiquidPullToRefresh(
+       color: Theme.of(context).buttonColor,
        onRefresh: fetch,
        child: ListView.builder(
         controller: scrollController,
@@ -288,7 +321,7 @@ class _NotesState extends State<Notes> {
           ),
           ListTile(
             dense: true,
-            leading: Icon(Icons.add_comment),
+            leading: Icon(Icons.note_add),
             title: Text('Create Note'),
             onTap: () {
               Navigator.of(context).push(
@@ -299,21 +332,21 @@ class _NotesState extends State<Notes> {
           Divider(),
           ListTile(
             dense: true,
-            leading: Icon(Icons.book),
-            title: Text('Project Manager (Coming Soon)'),
+            leading: Icon(Icons.lock),
+            title: Text('EazyTask (Coming Soon)'),
             onTap: () {
               
             },
           ),
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.nature_people),
-            title: Text('Instagram'),
-            onTap: () {
-              model.logout();
-                Navigator.of(context).pushReplacementNamed('/');
-            },
-          ),
+          // ListTile(
+          //   dense: true,
+          //   leading: Icon(Icons.nature_people),
+          //   title: Text('Instagram'),
+          //   onTap: () {
+          //     model.logout();
+          //       Navigator.of(context).pushReplacementNamed('/');
+          //   },
+          // ),
           
           Divider(),
           ListTile(
@@ -400,10 +433,11 @@ class _NotesState extends State<Notes> {
           ListTile(
             dense: true,
             leading: Icon(Icons.person_pin),
-            title: Text('About Us'),
+            title: Text('About Dev'),
             onTap: () {
-              model.logout();
-                Navigator.of(context).pushReplacementNamed('/');
+              Navigator.of(context).push(
+                _aboutAnimation()
+              );
             },
           ),
           ListTile(
@@ -422,28 +456,28 @@ class _NotesState extends State<Notes> {
     );
   }
  
-  // Widget _showAlert() {
-  //   Alert(
-  //     context: context,
-  //     title: "Network Changed",
-  //     desc: "Oooh, You are not connected to a newtwork",
-  //     buttons: [
-  //       DialogButton(
-  //         child: Text(
-  //           "Okay",
-  //           style: TextStyle(color: Colors.white, fontSize: 20),
-  //         ),
-  //         onPressed: () => Navigator.pop(context),
-  //         color: Color.fromRGBO(0, 179, 134, 1.0),
-  //       ),],
-  //     style: AlertStyle(
-  //       // animationDuration: Duration(milliseconds: 400),
-  //       animationType: AnimationType.fromTop,
-  //       isCloseButton: false,
-  //       isOverlayTapDismiss: false,
-  //     )
-  //   ).show();
-  // }
+  _showAlert() {
+    Alert(
+      context: context,
+      title: "Network Lost!!",
+      desc: "Oooh, You are not connected to a network",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Okay",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+          color: Theme.of(context).buttonColor,
+        ),],
+      style: AlertStyle(
+        // animationDuration: Duration(milliseconds: 400),
+        animationType: AnimationType.fromTop,
+        isCloseButton: false,
+        isOverlayTapDismiss: false,
+      )
+    ).show();
+  }
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(builder: (BuildContext context, Widget child, MainModel model) {
       TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
@@ -454,15 +488,19 @@ class _NotesState extends State<Notes> {
       return Scaffold(
         drawer: _buildSideDrawer(context, model),
         appBar: AppBar(
-          title:  currentPage == 0 ? Text('Local Device') : Text('Online'),
-          // actions: <Widget>[
-          //   IconButton(
-          //     icon: Icon(Icons.exit_to_app),
-          //     onPressed: () {
-                
-          //     }
-          //   ) 
-          // ],
+          
+          title:  currentPage == 0 ? Text('On Local Device') : Text('Online'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.note_add),
+              onPressed: () {
+                _showAlert();
+                Navigator.of(context).push(
+                  _newNoteAnimation()
+                );
+              }
+            ) 
+          ],
         ),
         body:  _widgetOptions.elementAt(currentPage),
         // body: _buildNoteList(),
@@ -471,6 +509,7 @@ class _NotesState extends State<Notes> {
           child: FloatingActionButton(
             
             onPressed: () {
+              
               // Add your onPressed code here!
               Navigator.of(context).push(
               _newNoteAnimation()
@@ -478,7 +517,7 @@ class _NotesState extends State<Notes> {
               //  Navigator.pushReplacementNamed(context, '/create');
             },
             // label: Text('New'),
-            child: Icon(Icons.add),
+            child: Icon(Icons.note_add),
             backgroundColor: Theme.of(context).accentColor,
           ),
           

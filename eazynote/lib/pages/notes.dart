@@ -32,30 +32,45 @@ class _NotesState extends State<Notes> {
 
   @override
   initState() {
-     widget.model.networkStatus();
-      widget.model.getNetworkStatus.listen((String connectionStatus) {
-      setState(() {  
-        _connectionStatus = connectionStatus;
-        print('connection here in notes $_connectionStatus');
-      });
+    //  widget.model.networkStatus();
+     widget.model.fetchAppMeta();
       
-    });
+     widget.model.getUpdateAvailability.listen((bool updateAvailable) {
+       setState(() {  
+        if (updateAvailable) {
+            // print('update available');
+            WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showUpdateAlert(widget.model.appMetaData.appVersion));
+             
+        }
+     });
+      // setState(() {  
+      //    print('update availabel $updateAvailable');
+      // });
+     });
+    //   widget.model.getNetworkStatus.listen((String connectionStatus) {
+    //   setState(() {  
+    //     _connectionStatus = connectionStatus;
+    //     print('connection here in notes $_connectionStatus');
+    //   });
+      
+    // });
     widget.model.fetchNotes();
-    widget.model.getNetworkStatus;
+    // widget.model.getNetworkStatus;
     // widget.model.currentDate;
     super.initState();
-    widget.model.networkStatus();
-      widget.model.getNetworkStatus.listen((String connectionStatus) {
-      setState(() {  
-        _connectionStatus = connectionStatus;
-        print('connection here in notes $_connectionStatus');
-      });
-      if (_connectionStatus == 'ConnectivityResult.none') {
-        print('Criteria matched');
-        WidgetsBinding.instance
-          .addPostFrameCallback((_) => _showAlert());
-    }
-    });
+    // widget.model.networkStatus();
+    //   widget.model.getNetworkStatus.listen((String connectionStatus) {
+    //   setState(() {  
+    //     _connectionStatus = connectionStatus;
+    //     print('connection here in notes $_connectionStatus');
+    //   });
+    //   if (_connectionStatus == 'ConnectivityResult.none') {
+    //     print('Criteria matched');
+    //     WidgetsBinding.instance
+    //       .addPostFrameCallback((_) => _showAlert());
+    // }
+    // });
   }
   void setDialVisible(bool value) {
     setState(() {
@@ -84,9 +99,9 @@ class _NotesState extends State<Notes> {
     );
   }
 
-  Route _aboutAnimation() {
+  Route _aboutAnimation(model) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => AboutDev(),
+      pageBuilder: (context, animation, secondaryAnimation) => AboutDev(model),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         var begin = Offset(0.0, 1.0);
         var end = Offset.zero;
@@ -250,7 +265,7 @@ class _NotesState extends State<Notes> {
    }
    Widget _buildNoteList(Function fetch) {
     return ScopedModelDescendant(builder: (BuildContext context, Widget child, MainModel model) {
-      Widget  content = Center(child:CircularProgressIndicator());
+      Widget  content = Center(child:CircularProgressIndicator(backgroundColor: Theme.of(context).primaryColor));
       if (model.displayedNotes.length > 0 && !model.isLoading) {
         print('done loading');
         content = _buildListViewBuilder(fetch);
@@ -276,7 +291,7 @@ class _NotesState extends State<Notes> {
         );
 
       } else if (model.isLoading) {
-        content = Center(child:CircularProgressIndicator());
+        content = Center(child:CircularProgressIndicator(backgroundColor: Theme.of(context).primaryColor));
       }
       // return RefreshIndicator(onRefresh: model.fetchNotes, child: content);
       return content;
@@ -319,158 +334,216 @@ class _NotesState extends State<Notes> {
               ],)
             
           ),
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.note_add),
-            title: Text('Create Note'),
-            onTap: () {
-              Navigator.of(context).push(
-                _newNoteAnimation()
-              );
-            },
-          ),
-          Divider(),
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.lock),
-            title: Text('EazyTask (Coming Soon)'),
-            onTap: () {
-              
-            },
-          ),
-          // ListTile(
-          //   dense: true,
-          //   leading: Icon(Icons.nature_people),
-          //   title: Text('Instagram'),
-          //   onTap: () {
-          //     model.logout();
-          //       Navigator.of(context).pushReplacementNamed('/');
-          //   },
-          // ),
-          
-          Divider(),
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.palette),
-            title: Text('Change App Theme'),
-          ),
-          Row(
-            // crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              new RawMaterialButton(
-                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
-                onPressed: () {
-                  widget.model.changeAppTheme(1);
-                  // changeTheme(model, selectedTheme);
-                },
-                shape: new CircleBorder(),
-                elevation: 2.0,
-                fillColor: Colors.orange,
-                padding: const EdgeInsets.all(15.0),
-              ),
-              new RawMaterialButton(
-                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
-                onPressed: () {
-                  widget.model.changeAppTheme(2);
-                },
-                // child: new Icon(
-                //   Icons.pause,
-                //   color: Colors.blue,
-                //   size: 35.0,
-                // ),
-                shape: new CircleBorder(),
-                elevation: 2.0,
-                fillColor: Colors.red,
-                padding: const EdgeInsets.all(15.0),
-              ),
-              new RawMaterialButton(
-                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
-                onPressed: () {
-                  widget.model.changeAppTheme(3);
-                },
-                shape: new CircleBorder(),
-                elevation: 2.0,
-                fillColor: Colors.blue,
-                padding: const EdgeInsets.all(15.0),
-              ),
-              new RawMaterialButton(
-                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
-                onPressed: () {
-                  //  _showAlert();
-                      // EdgeAlert.show(context, title: 'Title', description: 'Description', gravity: EdgeAlert.TOP);
-                  widget.model.changeAppTheme(4);
-                },
-                shape: new CircleBorder(),
-                elevation: 2.0,
-                fillColor: Colors.green,
-                padding: const EdgeInsets.all(15.0),
-              ),
-              new RawMaterialButton(
-                constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
-                onPressed: () {
-                  widget.model.changeAppTheme(5);
-                },
-                shape: new CircleBorder(),
-                elevation: 2.0,
-                fillColor: Colors.brown,
-                padding: const EdgeInsets.all(15.0),
-              )
-            ],
-          ),
-          SizedBox(height: 5.0),
-        
-          Divider(),
-          
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.apps),
-            title: Text('App Version: 1.0'),
-            onTap: () {
-              model.logout();
-                Navigator.of(context).pushReplacementNamed('/');
-            },
-          ),
-          ListTile(
-            dense: true,
-            leading: Icon(Icons.person_pin),
-            title: Text('About Dev'),
-            onTap: () {
-              Navigator.of(context).push(
-                _aboutAnimation()
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.exit_to_app, color: Colors.red),
-            title: Text('Logout', 
-            style: TextStyle(color: Colors.red)),
-            onTap: () {
-              model.logout();
-                Navigator.of(context).pushReplacementNamed('/');
-            },
-          ),
-
-          // LogoutListTile()
+          Container(
+          child: Stack(
+           children: <Widget>[
+             Column(
+               children: <Widget>[
+                  Container(
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.note_add, size:18),
+                      title: Text('Create Note'),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          _newNoteAnimation()
+                        );
+                      },
+                    ),
+                  ),
+                  Divider(),
+                  Container(
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.lock, size:18),
+                      title: Text('EazyTask (Coming Soon)'),
+                      onTap: () {
+                        
+                      },
+                    ),
+                  ),     
+                  Divider(),
+                  Container(
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.palette, size:18),
+                      title: Text('Change App Theme'),
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      // crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        new RawMaterialButton(
+                          constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                          onPressed: () {
+                            widget.model.changeAppTheme(1);
+                            // changeTheme(model, selectedTheme);
+                          },
+                          shape: new CircleBorder(),
+                          elevation: 2.0,
+                          fillColor: Colors.orange,
+                          padding: const EdgeInsets.all(15.0),
+                        ),
+                        new RawMaterialButton(
+                          constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                          onPressed: () {
+                            widget.model.changeAppTheme(2);
+                          },
+                          // child: new Icon(
+                          //   Icons.pause,
+                          //   color: Colors.blue,
+                          //   size: 35.0,
+                          // ),
+                          shape: new CircleBorder(),
+                          elevation: 2.0,
+                          fillColor: Colors.red,
+                          padding: const EdgeInsets.all(15.0),
+                        ),
+                        new RawMaterialButton(
+                          constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                          onPressed: () {
+                            widget.model.changeAppTheme(3);
+                          },
+                          shape: new CircleBorder(),
+                          elevation: 2.0,
+                          fillColor: Colors.blue,
+                          padding: const EdgeInsets.all(15.0),
+                        ),
+                        new RawMaterialButton(
+                          constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                          onPressed: () {
+                            //  _showAlert();
+                                // EdgeAlert.show(context, title: 'Title', description: 'Description', gravity: EdgeAlert.TOP);
+                            widget.model.changeAppTheme(4);
+                          },
+                          shape: new CircleBorder(),
+                          elevation: 2.0,
+                          fillColor: Colors.green,
+                          padding: const EdgeInsets.all(15.0),
+                        ),
+                        new RawMaterialButton(
+                          constraints: BoxConstraints(maxWidth: 51.0, maxHeight: 21.0),
+                          onPressed: () {
+                            widget.model.changeAppTheme(5);
+                          },
+                          shape: new CircleBorder(),
+                          elevation: 2.0,
+                          fillColor: Colors.brown,
+                          padding: const EdgeInsets.all(15.0),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 5.0),
+                
+                  Divider(),
+                  Container(
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.apps, size:18),
+                      title: Text('App Version: ${model.deviceAppVersion}'),
+                      onTap: () {
+                        // model.logout();
+                        //   Navigator.of(context).pushReplacementNamed('/');
+                      },
+                    ),
+                  ),
+                  Container(
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.person_pin, size:18),
+                      title: Text('Developer'),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          _aboutAnimation(model)
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    child: ListTile(
+                      leading: Icon(Icons.exit_to_app, color: Colors.red, size:18),
+                      title: Text('Logout', 
+                      style: TextStyle(color: Colors.red)),
+                      onTap: () {
+                        model.logout();
+                          Navigator.of(context).pushReplacementNamed('/');
+                      },
+                    ),
+                  ), 
+              //     Container(
+              //     child: new Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   verticalDirection: VerticalDirection.up,
+              //   children: <Widget>[
+              //   // alignment: FractionalOffset.bottomCenter,
+              //     Container(
+              //       // color: Colors.white,
+              //       child: ListTile(
+              //         dense: true,
+              //         leading: Icon(Icons.apps, size:18),
+              //         title: Text('EazyNote ${model.appMetaData.appVersion} available'),
+              //         onTap: () {
+              //           // model.logout();
+              //           //   Navigator.of(context).pushReplacementNamed('/');
+              //         },
+              //       ),
+              //     ) 
+              //   ]               
+              // )
+              //     )
+                ]  // LogoutListTile()
+            ),
+            // Positioned(         
+              // child: new Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   verticalDirection: VerticalDirection.up,
+              //   children: <Widget>[
+              //   // alignment: FractionalOffset.bottomCenter,
+              //     Container(
+              //       // color: Colors.white,
+              //       child: ListTile(
+              //         dense: true,
+              //         leading: Icon(Icons.apps, size:18),
+              //         title: Text('App Version: ${model.deviceAppVersion}'),
+              //         onTap: () {
+              //           // model.logout();
+              //           //   Navigator.of(context).pushReplacementNamed('/');
+              //         },
+              //       ),
+              //     ) 
+              //   ]               
+              // )
+            // )
+           ]
+          )
+          )
         ],
       ),
     );
   }
  
-  _showAlert() {
+  _showUpdateAlert(appVersion) {
     Alert(
       context: context,
-      title: "Network Lost!!",
-      desc: "Oooh, You are not connected to a network",
+      title: "New Update Available!!",
+      desc: "Update $appVersion is available to download, downloading the latest update you will get latest features, improvements and bug fixes",
       buttons: [
         DialogButton(
           child: Text(
             "Okay",
-            style: TextStyle(color: Colors.white, fontSize: 20),
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context);
+             widget.model.toggleUpdateStatus();
+          },
           color: Theme.of(context).buttonColor,
         ),],
       style: AlertStyle(
+        descStyle: TextStyle(fontSize: 16, color:Colors.black54),
+        titleStyle: TextStyle(fontSize: 19,),
         // animationDuration: Duration(milliseconds: 400),
         animationType: AnimationType.fromTop,
         isCloseButton: false,
@@ -494,7 +567,6 @@ class _NotesState extends State<Notes> {
             IconButton(
               icon: Icon(Icons.note_add),
               onPressed: () {
-                _showAlert();
                 Navigator.of(context).push(
                   _newNoteAnimation()
                 );

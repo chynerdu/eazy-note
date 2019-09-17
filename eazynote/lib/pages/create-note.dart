@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:zefyr/zefyr.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 // import 'dart:convert';
 // import '../models/notes-model.dart';
@@ -19,6 +21,7 @@ class NewNotePage extends StatefulWidget {
 
 class _NewNotePageState extends State<NewNotePage> {
        // define formdata
+    int _radioValue1 = 1;
     final Map<String, dynamic> _formData = {
       'title': null,
       'subtitle': null,
@@ -43,8 +46,8 @@ class _NewNotePageState extends State<NewNotePage> {
     }
 
     Widget _buildTitleTextField() {
-      return EnsureVisibleWhenFocused(
-        focusNode: _titleFocusNode,
+      return Container(
+        // focusNode: _titleFocusNode,
         child: TextFormField(
           focusNode: _titleFocusNode,
           decoration: InputDecoration(
@@ -75,11 +78,12 @@ class _NewNotePageState extends State<NewNotePage> {
   // }
 
     Widget _buildSubtitleTextField() {
-      return EnsureVisibleWhenFocused(
-        focusNode: _subtitleFocusNode,
+      return Container(
+        // focusNode: _subtitleFocusNode,
         child: TextFormField(
+          keyboardType: TextInputType.multiline,
           focusNode: _subtitleFocusNode,
-          maxLines: 8,
+          maxLines: null,
           decoration: InputDecoration(
             labelText: 'Content',
             border: InputBorder.none,
@@ -97,78 +101,121 @@ class _NewNotePageState extends State<NewNotePage> {
         )
       );
     }
-
-    Widget _buildDropDown() {
-      // String dropdownValue = 'Uncategorized';
-      return EnsureVisibleWhenFocused(
-        focusNode: _titleFocusNode,
-        child: DropdownButton<String>(
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down), 
-          onChanged: (String value) {
-            setState(() {
-             _formData['category']  = value;
-            //  print(_formData['category']);
-            });
-          },
-           value: _formData['category'],
-          items: [
-          DropdownMenuItem(
-            value: "1",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.layers),
-                SizedBox(width: 10),
-                Text(
-                  "Uncategorized",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "2",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.book),
-                SizedBox(width: 10),
-                Text(
-                  "Study",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "3",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.home),
-                SizedBox(width: 10),
-                Text(
-                  "Work",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "4",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.person),
-                SizedBox(width: 10),
-                Text(
-                  "Personal",
-                ),
-              ],
-            ),
-          ),
-        ],
-        ),
-      );
+    void _handleRadioValueChange1(int value) {
+      print('picked $value');
+      setState(() {
+        _radioValue1 = value;
+        _formData['category'] = value.toString();
+      });
     }
+    Widget _buildRadioButton() {
+      return new Row(children: <Widget>[
+        new Radio(
+          value: 1,
+          activeColor: Theme.of(context).buttonColor,
+          // activeColor: Colors.blue,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
+        ),
+        new Text(
+          'Uncategorized',
+          style: new TextStyle(fontSize: 16.0),
+        ),
+        new Radio(
+          value: 2,
+          activeColor: Theme.of(context).buttonColor,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
+        ),
+        new Text(
+          'Study',
+          style: new TextStyle(
+            fontSize: 16.0,
+          ),
+        ),
+        new Radio(
+          value: 3,
+          activeColor: Theme.of(context).buttonColor,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
+        ),
+        new Text(
+          'Work',
+          style: new TextStyle(fontSize: 16.0),
+        ),
+      ],);
+    }
+    // Widget _buildDropDown() {
+    //   // String dropdownValue = 'Uncategorized';
+    //   return EnsureVisibleWhenFocused(
+    //     focusNode: _titleFocusNode,
+    //     child: DropdownButton<String>(
+    //       isExpanded: true,
+    //       icon: Icon(Icons.keyboard_arrow_down), 
+    //       onChanged: (String value) {
+    //         setState(() {
+    //          _formData['category']  = value;
+    //         //  print(_formData['category']);
+    //         });
+    //       },
+    //        value: _formData['category'],
+    //       items: [
+    //       DropdownMenuItem(
+    //         value: "1",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.layers),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Uncategorized",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "2",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.book),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Study",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "3",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.home),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Work",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "4",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.person),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Personal",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ],
+    //     ),
+    //   );
+    // }
 
     Widget _buildStorageLocationSwitch() {
       return SwitchListTile(
@@ -236,23 +283,44 @@ class _NewNotePageState extends State<NewNotePage> {
           FocusScope.of(context).requestFocus(FocusNode());
         },
         child: Container(
+          padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
           margin: EdgeInsets.all(10.0),
           child: Form(
             key: _formKey,
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
+            child: Stack(
               children: <Widget>[
-                _buildStorageLocationSwitch(),
-                Divider(),
-                SizedBox(height:10.0),
-                _buildTitleTextField(),
-                SizedBox(height:10.0),
-                Divider(),
-                _buildDropDown(),
+                Column(
+                  children: <Widget>[
+                    // Container(
+                    // child: _buildStorageLocationSwitch(),
+                    // ),
+                    Container(
+                      child: _buildRadioButton()
+                    ),
+                    Divider(),
+                    // SizedBox(height:10.0),
+                    Container(
+                    child: _buildTitleTextField(),
+                    ),
+                    SizedBox(height:10.0),
+                    Divider(),
+                    Container(
+                      child: Expanded(
+                      child: _buildSubtitleTextField(),
+                      ),
+                    ), 
+                  ]  
+                ),           
+                // _buildDropDown(),
                 SizedBox(height:10.0),
                 
-                 SizedBox(height:10.0),
-                _buildSubtitleTextField(),
+                // Positioned(
+                //   child: new Align(
+                //     alignment: FractionalOffset.bottomCenter,
+                //       child:  _buildRadioButton(),                
+                //   )
+                // )
+                //  alignment: FractionalOffset.bottomCenter,
                 // _buildSubmitButton()
               ],
             )
@@ -268,9 +336,7 @@ class _NewNotePageState extends State<NewNotePage> {
             appBar: AppBar(
                 title: Text('New Note'),
                 actions: <Widget>[
-                   model.isLoading
-                   ? Center(child: CircularProgressIndicator())
-                    : IconButton(
+                    IconButton(
                       icon: Icon(Icons.save),
                       onPressed: () {
                       _submitFunction(model.addNote);
@@ -278,7 +344,16 @@ class _NewNotePageState extends State<NewNotePage> {
                     ) 
                 ],
             ),
-            body: _buildFormContent(context),
+            body:ModalProgressHUD(
+              child: _buildFormContent(context),
+              inAsyncCall:model.isLoading,
+              opacity: 0.6,
+              color:Colors.black87,
+              progressIndicator: SpinKitHourGlass(
+                color: Theme.of(context).primaryColor,
+                size: 50.0,
+              )
+            )
             // floatingActionButton: _buildSubmitButton(),
           );
         });

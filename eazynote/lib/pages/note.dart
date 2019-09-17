@@ -9,6 +9,7 @@ import 'package:sticky_headers/sticky_headers.dart';
 
 import '../scoped-models/main.dart';
 import '../models/notes-model.dart';
+import './create-note.dart';
 
 // views
 import './edit-Note.dart';
@@ -44,8 +45,25 @@ class _NotePage extends State<NotePage> {
 
 
 //  NotesModel note;
+   // animation
+   Route _newNoteAnimation() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => NewNotePage(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var begin = Offset(0.0, 1.0);
+        var end = Offset.zero;
+        var curve = Curves.ease;
 
-     // components
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      }
+    );
+  }
+  // components
   DecorationImage _buildBackgroundImage() {
     return new DecorationImage(
       // fit: BoxFit.cover,
@@ -69,23 +87,27 @@ class _NotePage extends State<NotePage> {
       curve: Curves.bounceIn,
       children: [
         SpeedDialChild(
-          child: Icon(Icons.delete, color: Colors.white),
-          backgroundColor: Colors.redAccent,
+          child: Icon(Icons.note_add, color: Colors.white),
+          backgroundColor: Colors.green,
           onTap: () {
-             model.selectNote(widget.note.id);
-              model.deleteNote()
-              .then((bool success) {
-                if(success) {
-                  // print('delete success');
-                  Navigator.pushReplacementNamed(context, '/notes').then((_) => model.selectNote(null));
-                } else {
-                  // print('delete failed');
-                }
-              });
+            Navigator.of(context).push(
+                _newNoteAnimation()
+              );
+
+            //  model.selectNote(widget.note.id);
+            //   model.deleteNote()
+            //   .then((bool success) {
+            //     if(success) {
+            //       // print('delete success');
+            //       Navigator.pushReplacementNamed(context, '/notes').then((_) => model.selectNote(null));
+            //     } else {
+            //       // print('delete failed');
+            //     }
+            //   });
           },
-          label: 'Delete',
+          label: 'New Note',
           labelStyle: TextStyle(fontWeight: FontWeight.w500),
-          labelBackgroundColor: Colors.redAccent,
+          labelBackgroundColor: Colors.green,
         ),
         SpeedDialChild(
           child: Icon(Icons.edit, color: Colors.white),
@@ -193,9 +215,7 @@ class _NotePage extends State<NotePage> {
               left: 5.0,
               right: 5.0,
               child: SingleChildScrollView(
-                 controller: scrollController,
-                 
-                
+                 controller: scrollController,               
                 child: Card(
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(

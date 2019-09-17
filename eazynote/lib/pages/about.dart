@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:flushbar/flushbar.dart';
 // import '../scoped-models/main.dart';
 
 
 
 class AboutDev extends StatefulWidget {
-
+  final MainModel model;
+  AboutDev(this.model);
 
   @override
   State<StatefulWidget> createState() {
@@ -15,6 +18,11 @@ class AboutDev extends StatefulWidget {
 }
 
 class _AboutDevState extends State<AboutDev> {
+  final Map<String, dynamic> _formData = {
+      'message': null,
+
+     };
+        final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // initState() {
   //   widget.model.deleteDatabase();
   //   // widget.model.currentDate;
@@ -31,6 +39,109 @@ class _AboutDevState extends State<AboutDev> {
       fit: BoxFit.cover,
  
     );
+  }
+
+   void callFlushbar(title, message) {
+     Flushbar(
+      title:  title,
+      message:  message,
+      flushbarPosition: FlushbarPosition.TOP,
+      flushbarStyle: FlushbarStyle.FLOATING,
+      reverseAnimationCurve: Curves.decelerate,
+      forwardAnimationCurve: Curves.elasticOut,
+      boxShadows: [BoxShadow(color: Colors.green[800], offset: Offset(0.0, 2.0), blurRadius: 3.0)],
+      backgroundGradient: LinearGradient(colors: [Colors.blueGrey, Colors.black]),
+      icon: Icon(
+        Icons.check,
+        color: Colors.greenAccent,
+      ),
+
+      duration:  Duration(seconds: 6),              
+    )..show(context);
+   }
+
+    void _sendMessage(context, Function sendMessage) {
+        if (!_formKey.currentState.validate()) {
+          return;
+        }
+        _formKey.currentState.save();
+        // print(_formData['subtitle']);
+        sendMessage(
+          _formData['message'],
+        ).then((bool success) {
+          if(success) {
+              // Scaffold.of(context).showSnackBar(SnackBar(
+              //   content: Text('Message received'),
+              //   duration: Duration(seconds: 3),
+              // ));
+            Navigator.pop(context);
+            String title = 'Message Sent';
+            String message = 'Thanks for your feedback';
+            callFlushbar(title, message);
+             
+          } else {
+            print('save failed');
+          }
+        });
+    }
+
+    _showMessageBox() {
+    Alert(
+      context: context,
+      title: "Drop a Message",
+      content: Form(
+        key: _formKey,
+         child: Column(
+          children: <Widget>[
+            Divider(),
+            // Text('Feel free to send a message', 
+            // style: TextStyle(fontSize: 16,)),
+            // SizedBox(height: 10.0),
+            TextFormField(
+               maxLines: 4,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                // icon: Icon(Icons.account_circle),
+                labelText: 'Message',
+              ),
+              validator: (String value) {
+                if (value.isEmpty || value.length < 10) {
+                  return 'Note content is required and should be 10+ characters long.';
+                }
+              },
+              onSaved: (String value) {
+                _formData['message'] = value;
+              }
+            ),
+          ]
+      ),
+      ),
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Close",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          onPressed: () => Navigator.pop(context),
+          color: Colors.black
+        ),
+        DialogButton(
+          child: Text(
+            "Send Message",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          onPressed: () => _sendMessage(context, widget.model.SendMessage),
+          color: Theme.of(context).buttonColor,
+        ),],
+      style: AlertStyle(
+        descStyle: TextStyle(fontSize: 16, color:Colors.black54),
+        titleStyle: TextStyle(fontSize: 19,),
+        // animationDuration: Duration(milliseconds: 400),
+        animationType: AnimationType.fromTop,
+        isCloseButton: false,
+        isOverlayTapDismiss: false,
+      )
+    ).show();
   }
 
 
@@ -104,8 +215,9 @@ class _AboutDevState extends State<AboutDev> {
                       SizedBox(height: 10.0,),
                       Divider(color: Colors.white),
                       SizedBox(height: 30.0,),
-                      new IconButton(icon: new Icon(Icons.email, color: Colors.white,), onPressed: () {
-
+                      new IconButton(icon: new Icon(Icons.email, color: Colors.white,), 
+                      onPressed: () {
+                        _showMessageBox();
                       }),
 
               

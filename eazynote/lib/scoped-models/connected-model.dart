@@ -13,17 +13,24 @@ import 'package:connectivity/connectivity.dart';
 
 import '../models/notes-model.dart';
 import '../models/user-model.dart';
+import '../models/meta-data.dart';
 
 mixin ConnectedNotesModel on Model {
   List <NotesModel> _notes = [];
+  appMetaDataModel _metaData;
+  String _deviceAppVersion = "1.0";
   String _selNoteId;
    bool _isLoading = false;
+   bool _isFetchingMeta  = true;
    UserModel _authenticatedUser;
 
 }
 
 mixin NotesLists on ConnectedNotesModel {
   PublishSubject<bool> _userSubject = PublishSubject();
+  PublishSubject<bool> _updateAvailable = PublishSubject();
+  bool updateShown = false;
+  
   
   // define getter
 
@@ -32,6 +39,21 @@ mixin NotesLists on ConnectedNotesModel {
   }
    bool get isLoading {
     return _isLoading;
+  }
+  PublishSubject <bool> get getUpdateAvailability {
+    return _updateAvailable;
+  }
+  bool get isFetchingMeta {
+    return _isFetchingMeta;
+  }
+
+  String get deviceAppVersion {
+    return _deviceAppVersion;
+  }
+
+  // set default value
+  appMetaDataModel get appMetaData {
+    return _metaData == null ? "***" : _metaData;
   }
   UserModel get user {
     return _authenticatedUser;
@@ -323,6 +345,58 @@ mixin NotesLists on ConnectedNotesModel {
 
   }
 
+  // Get app Meta
+     Future <Null> fetchAppMeta() async {
+     print('fetching meta');
+    // final dbHelper = DatabaseHelper.instance;
+    _isFetchingMeta = true;
+    
+    return http.get('https://eazynote-78666.firebaseio.com/appMeta.json')
+    .then<Null>((http.Response response) {
+      print('meta data body ${response.body}');
+      final Map<String, dynamic> metaData = json.decode(response.body);
+      if (metaData == null) {
+        _isFetchingMeta = true;
+        notifyListeners();
+        return;
+      }
+      print('decoded $metaData');
+      // noteListData.forEach((String noteId, dynamic noteList) {
+      //   final NotesModel note = NotesModel (
+      //     id: noteId,
+      //     title: noteList['title'],
+      //     subtitle: noteList['subtitle'],
+      //     category: noteList['category'],
+      //     dateTime: noteList['dateTime']
+      //   );
+      //   fetchedNoteList.add(note);
+      // });
+      _metaData = appMetaDataModel(
+        appVersion:metaData["app_version"]
+      );
+      _isFetchingMeta = false;
+      if (metaData["app_version"] != _deviceAppVersion && updateShown == false) {
+        _updateAvailable.add(true);
+      } else {
+         _updateAvailable.add(false);
+      }
+      notifyListeners();
+     
+    })
+    .catchError((error) {
+     _isLoading = false;
+      notifyListeners();
+      // return false;
+    });
+
+  }
+
+  void toggleUpdateStatus() {
+    _updateAvailable.add(false);
+    updateShown = true;
+    print('toggled status');
+  }
+
 
   
   Future <dynamic> deleteNote() {
@@ -571,5 +645,41 @@ mixin Utility on ConnectedNotesModel {
       return _connectionStatus;
      
     });
+  }
+
+  // send message
+    Future <bool>  SendMessage(String message) async {
+    // Map<String, dynamic> row;
+    _isLoading = true;
+    notifyListeners();
+    final Map<String, dynamic> messageFormData = {
+      'message': message,
+      'userId': _authenticatedUser.id,
+      'email': _authenticatedUser.email,
+    };
+    try {
+      print('sending');
+      // save online
+      final http.Response response = await http.post('https://eazynote-78666.firebaseio.com/userMessage.json', 
+      body: json.encode(messageFormData));
+      if(response.statusCode != 200 && response.statusCode != 201) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      print(responseData);
+       _isLoading = false;
+      notifyListeners();
+      // print(newNote);
+      return true;
+    } catch (error) {
+     print(error);
+     _isLoading = false;
+     notifyListeners();
+     return false;
+    }
+
+
   }
 }

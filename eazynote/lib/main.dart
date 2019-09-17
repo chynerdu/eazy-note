@@ -85,6 +85,7 @@ class _MyAppState extends State <MyApp> {
       if (_themeColor == 1 ) {
         // setState(() {
           return ThemeData(
+          unselectedWidgetColor:Colors.orange,
           brightness: Brightness.light,
           primarySwatch: Colors.orange,
           accentColor: Colors.white,
@@ -109,6 +110,7 @@ class _MyAppState extends State <MyApp> {
       
     } else if (_themeColor == 2) {
       return ThemeData(
+          unselectedWidgetColor:Colors.red,
           brightness: Brightness.light,
           primarySwatch: Colors.red,
           accentColor: Colors.white,
@@ -131,6 +133,7 @@ class _MyAppState extends State <MyApp> {
         );
         } else if (_themeColor == 4) {
           return ThemeData(
+              unselectedWidgetColor:Colors.green,
               brightness: Brightness.light,
               primarySwatch: Colors.green,
               accentColor: Colors.white,
@@ -153,6 +156,7 @@ class _MyAppState extends State <MyApp> {
             );
         } else if (_themeColor == 5) {
         return ThemeData(
+          unselectedWidgetColor:Colors.brown,
           brightness: Brightness.light,
           primarySwatch: Colors.brown,
           accentColor: Colors.white,
@@ -176,6 +180,7 @@ class _MyAppState extends State <MyApp> {
     
     } else {
       return ThemeData(
+          unselectedWidgetColor:Colors.blue,
           brightness: Brightness.light,
           primarySwatch: Colors.blue,
           accentColor: Colors.white,

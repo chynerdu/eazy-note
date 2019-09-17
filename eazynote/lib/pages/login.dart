@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 // import '../scoped-models/main.dart';
 import './signup.dart';
+
 
 
 class AuthPage extends StatefulWidget {
@@ -18,7 +21,7 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
   // initState() {
-  //   widget.model.deleteDatabase();
+  //   widget.model.fetchAppMeta();
   //   // widget.model.currentDate;
   //   super.initState();
   // }
@@ -157,7 +160,7 @@ class _AuthPageState extends State<AuthPage> {
       // appBar: AppBar(
       //   title: Text('EazyNote'),
       // ),
-      body: Container(
+      body: ModalProgressHUD(
         child: Container(
            
            padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 50.0, bottom: 10.0),
@@ -230,8 +233,7 @@ class _AuthPageState extends State<AuthPage> {
                           }
                           ),
                         SizedBox(height: 10.0,),
-                        model.isLoading ? CircularProgressIndicator()
-                          : MaterialButton( 
+                        MaterialButton( 
                           height: 40.0, 
                           minWidth: 400.0, 
                           color: Theme.of(context).primaryColor, 
@@ -251,7 +253,15 @@ class _AuthPageState extends State<AuthPage> {
               )
             )
           )
+        ),
+        inAsyncCall:model.isLoading,
+        opacity: 0.6,
+        color:Colors.black87,
+        progressIndicator: SpinKitHourGlass(
+          color: Theme.of(context).primaryColor,
+          size: 50.0,
         )
+        // progressIndicator: CircularProgressIndicator(backgroundColor: Theme.of(context).primaryColor),
       )
     );
   });

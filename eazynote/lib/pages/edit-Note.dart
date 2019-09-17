@@ -2,6 +2,8 @@
 import 'package:eazynote/models/notes-model.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 // import 'dart:convert';
 // import '../models/notes-model.dart';
 import '../scoped-models/main.dart';
@@ -18,6 +20,7 @@ class EditNotePage extends StatefulWidget {
 
 class _EditNotePageState extends State<EditNotePage> {
        // define formdata
+    int _radioValue1 = 2;
     final Map<String, dynamic> _formData = {
       'title': null,
       'subtitle': null,
@@ -29,8 +32,8 @@ class _EditNotePageState extends State<EditNotePage> {
      final _subtitleFocusNode = FocusNode();
 
     Widget _buildTitleTextField(NotesModel note) {
-      return EnsureVisibleWhenFocused(
-        focusNode: _titleFocusNode,
+      return Container(
+        // focusNode: _titleFocusNode,
         child: TextFormField(
           focusNode: _titleFocusNode,
           decoration: InputDecoration(labelText: 'Title'),
@@ -48,11 +51,12 @@ class _EditNotePageState extends State<EditNotePage> {
     }
 
     Widget _buildSubtitleTextField(NotesModel note) {
-      return EnsureVisibleWhenFocused(
-        focusNode: _subtitleFocusNode,
+      return Container(
+        // focusNode: _subtitleFocusNode,
         child: TextFormField(
+          keyboardType: TextInputType.multiline,
           focusNode: _subtitleFocusNode,
-          maxLines: 8,
+          maxLines: null,
           decoration: InputDecoration(labelText: 'Content'),
           initialValue: note.subtitle,
           validator: (String value) {
@@ -66,104 +70,145 @@ class _EditNotePageState extends State<EditNotePage> {
         )
       );
     }
-   
-    Widget _buildDropDown() {
-      // String dropdownValue = 'Uncategorized';
-      return EnsureVisibleWhenFocused(
-        focusNode: _titleFocusNode,
-        child: DropdownButton<String>(
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down), 
-          onChanged: (String value) {
-            setState(() {
-             _formData['category']  = value;
-             print(_formData['category']);
-            });
-          },
-           value: _formData['category'],
-          items: [
-          DropdownMenuItem(
-            value: "1",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.layers),
-                SizedBox(width: 10),
-                Text(
-                  "Uncategorized",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "2",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.book),
-                SizedBox(width: 10),
-                Text(
-                  "Study",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "3",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.home),
-                SizedBox(width: 10),
-                Text(
-                  "Work",
-                ),
-              ],
-            ),
-          ),
-          DropdownMenuItem(
-            value: "4",
-            child: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Icon(Icons.person),
-                SizedBox(width: 10),
-                Text(
-                  "Personal",
-                ),
-              ],
-            ),
-          ),
-        ],
-          // items: <String>['Uncategorized', 'Work', 'Study', 'Personal']
-          //   .map<DropdownMenuItem<String>>((String value) {
-          //     return DropdownMenuItem<String>(
-          //       value: value,
-          //       child: Text(value),
-          //     );
-          //   })
-          //   .toList(),
+    void _handleRadioValueChange1(int value) {
+      print('picked $value');
+      setState(() {
+        _radioValue1 = value;
+         _formData['category'] = value.toString();
+      });
+    }
+    Widget _buildRadioButton() {
+      return new Row(children: <Widget>[
+        new Radio(
+          value: 1,
+          activeColor: Theme.of(context).buttonColor,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
         ),
-      );
+        new Text(
+          'Uncategorized',
+          style: new TextStyle(fontSize: 16.0),
+        ),
+        new Radio(
+          value: 2,
+          activeColor: Theme.of(context).buttonColor,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
+        ),
+        new Text(
+          'Study',
+          style: new TextStyle(
+            fontSize: 16.0,
+          ),
+        ),
+        new Radio(
+          value: 3,
+          activeColor: Theme.of(context).buttonColor,
+          groupValue: _radioValue1,
+          onChanged: _handleRadioValueChange1,
+        ),
+        new Text(
+          'Work',
+          style: new TextStyle(fontSize: 16.0),
+        ),
+      ],);
     }
+    // Widget _buildDropDown(NotesModel note) {
+    //   //  _formData['category'] = note.category;
+    //   // String dropdownValue = 'Uncategorized';
+    //   return EnsureVisibleWhenFocused(
+    //     focusNode: _titleFocusNode,
+    //     child: DropdownButton<String>(
+    //       isExpanded: true,
+    //       icon: Icon(Icons.keyboard_arrow_down), 
+    //       onChanged: (String value) {
+    //         setState(() {
+    //          _formData['category']  = value;
+    //          print(_formData['category']);
+    //         });
+    //       },
+    //        value: _formData['category'],
+    //       items: [
+    //       DropdownMenuItem(
+    //         value: "1",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.layers),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Uncategorized",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "2",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.book),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Study",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "3",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.home),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Work",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       DropdownMenuItem(
+    //         value: "4",
+    //         child: Row(
+    //           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: <Widget>[
+    //             Icon(Icons.person),
+    //             SizedBox(width: 10),
+    //             Text(
+    //               "Personal",
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ],
+    //       // items: <String>['Uncategorized', 'Work', 'Study', 'Personal']
+    //       //   .map<DropdownMenuItem<String>>((String value) {
+    //       //     return DropdownMenuItem<String>(
+    //       //       value: value,
+    //       //       child: Text(value),
+    //       //     );
+    //       //   })
+    //       //   .toList(),
+    //     ),
+    //   );
+    // }
 
-    Widget _buildSubmitButton() {
-      return ScopedModelDescendant<MainModel>(
-        builder: (BuildContext context, Widget child, MainModel model) {
-          return
-          model.isLoading
-          ? Center(child: CircularProgressIndicator())
-          : FloatingActionButton(
-            onPressed: () {
-            _submitFunction(model.updateNote, model.selectNote);
-            },
-            child: Text('Done'),
-            // child: Icon(Icons.save),
-            backgroundColor: Theme.of(context).primaryColor,
-          );
-        },
-      );
-    }
+    // Widget _buildSubmitButton() {
+    //   return ScopedModelDescendant<MainModel>(
+    //     builder: (BuildContext context, Widget child, MainModel model) {
+    //       return
+    //       FloatingActionButton(
+    //         onPressed: () {
+    //         _submitFunction(model.updateNote, model.selectNote);
+    //         },
+    //         child: Text('Done'),
+    //         // child: Icon(Icons.save),
+    //         backgroundColor: Theme.of(context).primaryColor,
+    //       );
+    //     },
+    //   );
+    // }
 
     void _submitFunction(Function updateNote, Function selectNote) {
         if (!_formKey.currentState.validate()) {
@@ -197,17 +242,39 @@ class _EditNotePageState extends State<EditNotePage> {
           margin: EdgeInsets.all(10.0),
           child: Form(
             key: _formKey,
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
+            child: Stack(
               children: <Widget>[
-                _buildTitleTextField(note),
-                SizedBox(height:10.0),
-                 Divider(),
-                _buildDropDown(),
-                // Divider(),
-                 SizedBox(height:10.0),
-                _buildSubtitleTextField(note),
-                // _buildSubmitButton()
+                Column(
+                  children: <Widget>[
+                    // SizedBox(height:10.0),
+                    Container(
+                      child: _buildRadioButton()
+                    ),
+                    Divider(),
+                    Container(
+                    child: _buildTitleTextField(note),
+                    ),
+                    SizedBox(height:10.0),
+                    Container(
+                      child: Expanded(
+                      child: _buildSubtitleTextField(note),
+                      ),
+                    ), 
+                  ]  
+                ),           
+                // _buildDropDown(),
+                // SizedBox(height:10.0),
+                
+                // Positioned(
+                  
+                //   child: new Align(
+                //     alignment: FractionalOffset.bottomCenter,
+                //       child: Container(
+                //        color: Colors.white,
+                //        child: _buildRadioButton(),
+                //       )                
+                //   )
+                // )
               ],
             )
           )
@@ -221,17 +288,26 @@ class _EditNotePageState extends State<EditNotePage> {
         return Scaffold(
           appBar: AppBar(
             title: Text('Edit'),
-            // actions: <Widget>[
-            //       IconButton(
-            //         icon: Icon(Icons.arrow_back),
-            //         onPressed: () {
-            //         Navigator.pushReplacementNamed(context, '/notes');
-            //         },
-            //       ) 
-            // ],
+            actions: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.check),
+                    onPressed: () {
+                    _submitFunction(model.updateNote, model.selectNote);
+                    },
+                  ) 
+            ],
           ),
-          body: _buildFormContent(context, model.selectedNote),
-          floatingActionButton: _buildSubmitButton(),
+          body: ModalProgressHUD(
+           child: _buildFormContent(context, model.selectedNote),
+            inAsyncCall:model.isLoading,
+            opacity: 0.6,
+            color:Colors.black87,
+            progressIndicator: SpinKitHourGlass(
+              color: Theme.of(context).primaryColor,
+              size: 50.0,
+            )
+          ),
+          // floatingActionButton: _buildSubmitButton(),
         );
       });
   }

@@ -3,6 +3,8 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:flushbar/flushbar.dart';
 import '../scoped-models/main.dart';
 import 'package:eazynote/pages/login.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'package:flutter/material.dart';
 
@@ -166,7 +168,7 @@ class _SignupState extends State<Signup> {
           // appBar: AppBar(
           //   title: Text('EazyNote'),
           // ),
-        body: Container(
+        body: ModalProgressHUD(
         child: Container(
            
            padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 50.0, bottom: 10.0),
@@ -232,7 +234,7 @@ class _SignupState extends State<Signup> {
                         _buildPasswordConfirmTextField(),
                         SizedBox(height: 10.0,),
                         FlatButton(
-                          child: Text('Back to Account', 
+                          child: Text('Back to Login', 
                           style: TextStyle(color: Colors.red)),
                           onPressed: () {
                             Navigator.of(context).push(
@@ -241,8 +243,7 @@ class _SignupState extends State<Signup> {
                           }
                           ),
                         SizedBox(height: 10.0,),
-                        model.isLoading ? CircularProgressIndicator()
-                          : MaterialButton( 
+                         MaterialButton( 
                           height: 40.0, 
                           minWidth: 400.0, 
                           color: Theme.of(context).primaryColor, 
@@ -262,6 +263,13 @@ class _SignupState extends State<Signup> {
               )
             )
           )
+        ),
+        inAsyncCall:model.isLoading,
+        opacity: 0.6,
+        color:Colors.black87,
+        progressIndicator: SpinKitHourGlass(
+          color: Theme.of(context).primaryColor,
+          size: 50.0,
         )
       )
         );

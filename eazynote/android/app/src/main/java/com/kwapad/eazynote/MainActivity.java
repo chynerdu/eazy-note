@@ -1,4 +1,4 @@
-package com.example.eazynote;
+package com.kwapad.eazynote;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

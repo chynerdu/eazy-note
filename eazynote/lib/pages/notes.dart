@@ -324,7 +324,7 @@ class _NotesState extends State<Notes> {
               crossAxisAlignment: CrossAxisAlignment.start,
               verticalDirection: VerticalDirection.down,
               children: <Widget>[
-                Text('EazyNote', 
+                Text('EazPad', 
                 style: TextStyle(color:Colors.white, fontSize: 30.0,),
                 ),
                 Text(model.user.email,
